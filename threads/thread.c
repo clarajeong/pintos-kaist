@@ -357,44 +357,42 @@ void thread_sleep(int64_t ticks){
 
 
 void thread_awake(int64_t ticks){
-	struct list_elem *sleep_current = list_head(&sleep_list);
-	struct list_elem *temp_current;
-	
-	while(sleep_current != list_tail(&sleep_list)){
-		struct thread *current_thread = list_entry( sleep_current, struct thread, elem );
-		if((current_thread->ticks) >= ticks) {
+   struct list_elem *sleep_current = list_head(&sleep_list);
+   struct list_elem *temp_current;
+   
+   while(sleep_current != list_tail(&sleep_list)){
+      struct thread *current_thread = list_entry( sleep_current, struct thread, elem );
+      if((current_thread->ticks) >= ticks) {
 
-			//remove from sleep queue(sleep_list)
-			temp_current = sleep_current;
-			sleep_current = sleep_current -> next;
-			list_remove(temp_current);
+         //remove from sleep queue(sleep_list)
+         temp_current = sleep_current;
+         sleep_current = sleep_current -> next;
+         list_remove(temp_current);
+         
+         //current_thread 를 unblock
+         current_thread -> status = THREAD_READY;
+      }
+      else {
+         sleep_current = sleep_current -> next;
+         update_next_tick_to_awake(current_thread->ticks);
+      }
+      
+   }
+   //AGAIN
+   struct thread *current_thread = list_entry( sleep_current, struct thread, elem );
+   if((current_thread->ticks) >= ticks) {
 
+      //remove from sleep queue(sleep_list)
+      temp_current = sleep_current;
+      sleep_current = sleep_current -> next;
+      list_remove(temp_current);
 
-			//current_thread 를 unblock
-			current_thread -> status = THREAD_READY;
-		}
-		else {
-			sleep_current = sleep_current -> next;
-			update_next_tick_to_awake(current_thread->ticks);
-		}
-		
-	}
-	//AGAIN
-	struct thread *current_thread = list_entry( sleep_current, struct thread, elem );
-	if((current_thread->ticks) >= ticks) {
-
-		//remove from sleep queue(sleep_list)
-		temp_current = sleep_current;
-		sleep_current = sleep_current -> next;
-		list_remove(temp_current);
-
-		//current_thread 를 unblock
-		current_thread -> status = THREAD_READY;
-	}
-	else {
-		sleep_current = sleep_current -> next;
-		update_next_tick_to_awake(current_thread->ticks);
-	}
+      //current_thread 를 unblock
+      current_thread -> status = THREAD_READY;
+   }
+   else {
+      update_next_tick_to_awake(current_thread->ticks);
+   }
 }
 
 void update_next_tick_to_awake(int64_t ticks){
