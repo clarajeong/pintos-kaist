@@ -104,6 +104,9 @@ struct thread {
 	struct list donations;			/* Used to consider multiple donation */
 	struct list_elem donation_elem;	/* Used to consider multiple donation */
 
+	int nice;
+	int recent_cpu;
+
 #ifdef USERPROG
 	/* Owned by userprog/process.c. */
 	uint64_t *pml4;                     /* Page map level 4 */
@@ -149,6 +152,12 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
+void mlfqs_priority(void);
+void mlfqs_recent_cpu(void);
+void mlfqs_load_avg(void);
+void mlfqs_increment(void);
+void mlfqs_recalc(void);
 
 void do_iret (struct intr_frame *tf);
 
