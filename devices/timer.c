@@ -132,6 +132,17 @@ timer_interrupt (struct intr_frame *args UNUSED) {
 	ticks++;
 	thread_tick ();
 
+	if (thread_mlfqs) {
+		mlfqs_increment(); //increment load_avg
+		if (ticks % 4 == 0) { // every 4 ticks
+			mlfqs_priority(thread_current()); // is thread current() right?
+			if (ticks % TIMER_FREQ == 0) { // every seconds
+				mlfqs_recalc(); // calculate priority and recent cpu
+				mlfqs_load_avg (); // and load_avg
+			}
+		}
+	}
+
 	//hmm
 	//check_sleepqueue(ticks);
 	//TODO

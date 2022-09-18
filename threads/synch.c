@@ -198,13 +198,17 @@ lock_acquire (struct lock *lock) {
 
 	struct thread *curr = thread_current ();
 
-	if(lock->holder) {
-		curr->wait_on_lock = lock;
-		curr->init_priority = curr->priority;
-		//TODO
-		//donation 을 받은 스레드의 thread 구조체를 list로 관리한다.
-		donate_priority();
+	if (!thread_mlfqs) { // disable priority donation when thread_mlfqs
+		if(lock->holder) {
+			curr->wait_on_lock = lock;
+			curr->init_priority = curr->priority;
+			//TODO
+			//donation 을 받은 스레드의 thread 구조체를 list로 관리한다.
+			donate_priority();
+		}
 	}
+
+	
 
 	sema_down (&lock->semaphore);
 
@@ -249,6 +253,8 @@ lock_release (struct lock *lock) {
 	/* seogyeong */
 	remove_with_lock(lock);
 	refresh_priority();
+
+	// same as lock_acquire >> where is priority donation part?
 
 	sema_up (&lock->semaphore);
 }
