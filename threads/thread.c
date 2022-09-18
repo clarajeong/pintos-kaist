@@ -532,7 +532,63 @@ init_thread (struct thread *t, const char *name, int priority) {
 	t->tf.rsp = (uint64_t) t + PGSIZE - sizeof (void *);
 	t->priority = priority;
 	t->magic = THREAD_MAGIC;
+
+	/* seogyeong */
+	t->init_priority = PRI_DEFAULT;
+	t->wait_on_lock = NULL;
+	list_init(&(t->donations));
+	
+
+	//나머지도 initialize해야하나?
+
 }
+
+/* seogyeong */
+void donate_priority(void){
+	
+	struct thread *curr = thread_current ();
+	struct thread *init_curr = curr;
+	for(int i=0; i<8; i++){
+		if(!(curr->wait_on_lock)) break;
+		if(!(curr->wait_on_lock->holder))break;
+		curr = curr->wait_on_lock->holder;
+		curr->priority = init_curr->priority;
+	}
+}
+
+void remove_with_lock(struct lock *lock){
+	struct thread *init = thread_current ();
+	struct thread *curr;
+	struct list_elem *curr_listelem = list_begin(&(init->donations));
+	while(curr_listelem != list_end(&(init->donations))){
+		//TODO: this part check
+		curr = list_entry( curr_listelem, struct thread, elem );
+
+		if(curr->wait_on_lock == lock){
+			if(curr_listelem == list_begin(&(init->donations))){
+				//head
+				list_pop_front(&(init->donations));
+			}
+			else{
+				curr_listelem->prev->next = curr_listelem->next;
+				curr_listelem->next->prev = curr_listelem->prev;
+				curr_listelem->prev = NULL;
+			}
+		}
+		curr_listelem = curr_listelem->next;
+	}
+	curr = list_entry( curr_listelem, struct thread, elem );
+	if(curr->wait_on_lock == lock) {
+		curr_listelem->prev->next = NULL;
+		curr_listelem->prev = NULL;
+	}
+}
+
+void refresh_priority(void){
+	struct thread *init = thread_current ();
+	init->priority = init->init_priority;
+}
+
 
 /* Chooses and returns the next thread to be scheduled.  Should
    return a thread from the run queue, unless the run queue is

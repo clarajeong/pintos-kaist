@@ -193,8 +193,22 @@ lock_acquire (struct lock *lock) {
 	ASSERT (!intr_context ());
 	ASSERT (!lock_held_by_current_thread (lock));
 
+	struct thread *curr = thread_current ();
+
+	if(lock->holder) {
+		curr->wait_on_lock = lock;
+		curr->init_priority = curr->priority;
+		//TODO
+		//donation 을 받은 스레드의 thread 구조체를 list로 관리한다.
+		donate_priority();
+	}
+
 	sema_down (&lock->semaphore);
-	lock->holder = thread_current ();
+
+	/*seogyeong*/
+	thread_current()->wait_on_lock = NULL;
+
+	lock->holder = thread_current();
 }
 
 /* Tries to acquires LOCK and returns true if successful or false
@@ -228,6 +242,11 @@ lock_release (struct lock *lock) {
 	ASSERT (lock_held_by_current_thread (lock));
 
 	lock->holder = NULL;
+
+	/* seogyeong */
+	remove_with_lock();
+	refresh_priority();
+
 	sema_up (&lock->semaphore);
 }
 
@@ -347,3 +366,4 @@ bool cmp_sem_priority (const struct list_elem *a, const struct list_elem *b, voi
 	if((ta->priority) > (tb->priority)) return 1;
 	else return 0;
 }
+
