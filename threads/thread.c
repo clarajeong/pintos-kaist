@@ -776,3 +776,12 @@ allocate_tid (void) {
 
 	return tid;
 }
+
+void priority_preemption(void) {
+	struct thread *cur = thread_current();
+	struct thread *front = list_entry(list_front(&ready_list), struct thread, elem);
+	
+	if(!list_empty(&ready_list) && cur->priority < front->priority){
+		thread_yield();
+	}
+}
