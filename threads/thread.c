@@ -412,8 +412,11 @@ thread_set_priority (int new_priority) {
 		thread_current ()->priority = new_priority;
 		//thread_set_priority(new_priority);
 		//선점?
-		test_max_priority();
 	}
+	test_max_priority(); /* 현재 수행중인 스레드와 가장 높은 우선순위의 스레드의 우선순위를 비교하여 스케줄링 */
+	donate_priority(); /* priority donation */
+	refresh_priority(); /* 우선순위 재결정 */
+	priority_preemption(); /* priority 선점 */
 	
 }
 
