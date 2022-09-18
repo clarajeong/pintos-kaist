@@ -244,7 +244,7 @@ lock_release (struct lock *lock) {
 	lock->holder = NULL;
 
 	/* seogyeong */
-	remove_with_lock();
+	remove_with_lock(lock);
 	refresh_priority();
 
 	sema_up (&lock->semaphore);
