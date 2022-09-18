@@ -100,8 +100,6 @@ timer_sleep (int64_t ticks) {
 	/*seogyeong******/
 	//why??
 	//thread_yield_sleep();
-
-
 }
 
 /* Suspends execution for approximately MS milliseconds. */
