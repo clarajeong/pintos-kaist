@@ -327,8 +327,7 @@ thread_yield (void) {
 }
 
 /**sg***/
-void
-thread_yield_sleep (void) {
+void thread_yield_sleep (void) {
 	struct thread *curr = thread_current ();
 	list_push_back (&sleep_list, &curr->elem);
 }
@@ -336,7 +335,6 @@ thread_yield_sleep (void) {
 void thread_sleep(int64_t ticks){
 	struct thread *curr = thread_current ();
 	enum intr_level old_level;
-	ready_list;
 
 	ASSERT (!intr_context ());
 
@@ -587,6 +585,17 @@ void remove_with_lock(struct lock *lock){
 void refresh_priority(void){
 	struct thread *init = thread_current ();
 	init->priority = init->init_priority;
+
+	if (list_empty(&init->donations)) {
+		return;
+	}
+	else {
+		list_sort(&init->donations, cmp_priority, NULL);
+		struct thread *front = list_entry(list_front(&init->donations), struct thread, elem);
+		if (front->priority > init->priority){
+			init->priority = front->priority;
+		}
+	}
 }
 
 
