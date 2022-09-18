@@ -11,6 +11,8 @@
 #include "threads/synch.h"
 #include "threads/vaddr.h"
 #include "intrinsic.h"
+/* include fixed_point.h */
+#include "fixed_point.h"
 #ifdef USERPROG
 #include "userprog/process.h"
 #endif
@@ -796,4 +798,16 @@ void priority_preemption(void) {
 	if(!list_empty(&ready_list) && cur->priority < front->priority){
 		thread_yield();
 	}
+}
+
+void mlfqs_priority(struct thread *t) {
+	if (t == idle_thread) return ;
+	/* priority = PRI_MAX – (recent_cpu / 4) – (nice * 2) */
+	t->priority = p_to_int (add_mixed (div_mixed (t->recent_cpu, -4), PRI_MAX - t->nice * 2));
+}
+
+void mlfqs_recent_cpu(struct thread *t) {
+	if (t == idle_thread) return ;
+	/* recent_cpu = (2 * load_avg) / (2 * load_avg + 1) * recent_cpu + nice */
+	t->recent_cpu = add_mixed (mult_fp (div_fp (mult_mixed (load_avg, 2), add_mixed (mult_mixed (load_avg, 2), 1)), t->recent_cpu), t->nice);
 }
